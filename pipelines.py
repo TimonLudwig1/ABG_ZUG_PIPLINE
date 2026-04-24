@@ -23,7 +23,7 @@ class SafeFieldParser(FieldParser):
             return None  
 
 def convert_dbf_to_csv(input_file, output_file, encoding='latin1'):
-    table = DBF(input_file, encoding=encoding, parserclass=SafeFieldParser)  # ← parserclass hinzugefügt
+    table = DBF(input_file, encoding=encoding, parserclass=SafeFieldParser) 
     df = pd.DataFrame(iter(table))
     if not df.empty:
         df.to_csv(output_file, index=False)
@@ -99,11 +99,6 @@ def scan_and_convert(base_directory, output_directory, data_output_directory, en
         except Exception as e:
             print(f"Fehler: {e}")
 
-#base_directory = '.'
-#output_directory = os.path.join(base_directory, 'converted_csv_files')
-#data_output_directory = os.path.join(base_directory, 'data_converted_csv_files')
-#scan_and_convert(base_directory, output_directory, data_output_directory)
-
 def run_dbf_pipeline(base_directory="input", output_directory="converted_csv_files", data_output_directory="converted_output", encoding='latin1', files='all'):
     """
     Konvertiert DBF-Dateien zu CSV.
@@ -126,11 +121,9 @@ def run_dbf_pipeline(base_directory="input", output_directory="converted_csv_fil
         print("Keine .dbf-Dateien gefunden.")
         return []
 
-    # Dateiauswahl
     if files == 'all':
         selected_files = dbf_files
     else:
-        # Nur die gewünschten Dateien aus der Liste filtern
         selected_files = [f for f in dbf_files if os.path.basename(f) in files]
 
     converted = []
@@ -210,7 +203,6 @@ def run_wj_pipeline(base_dir, output_dir=None, jahresbereich=range(1993, 2025), 
         output_dir = os.path.join(base_dir, "Wirtschaftsjahre")
     os.makedirs(output_dir, exist_ok=True)
 
-    # Alle gefilterten CSVs einlesen
     all_dfs = []
     for jahr in jahresbereich:
         filename = os.path.join(base_dir, f"Ein{jahr}_filtered.csv")
@@ -227,13 +219,11 @@ def run_wj_pipeline(base_dir, output_dir=None, jahresbereich=range(1993, 2025), 
     df_all = pd.concat(all_dfs, ignore_index=True)
     print(f"\nGesamt: {len(df_all)} Zeilen")
 
-    # Datumsspalten konvertieren
     if "ABSCHRBEGN" in df_all.columns:
         df_all["ABSCHRBEGN"] = pd.to_datetime(df_all["ABSCHRBEGN"], errors="coerce")
     if "ABGDATUM" in df_all.columns:
         df_all["ABGDATUM"] = pd.to_datetime(df_all["ABGDATUM"], errors="coerce")
 
-    # Relevantes Datum je nach EINTRART
     def get_datum(row):
         if str(row.get("EINTRART", "")).strip().upper() == "ABGANG":
             return row["ABGDATUM"]
@@ -247,7 +237,6 @@ def run_wj_pipeline(base_dir, output_dir=None, jahresbereich=range(1993, 2025), 
         print(f"{fehlend} Zeilen ohne gültiges Datum – werden übersprungen")
     df_all = df_all.dropna(subset=["DATUM"])
 
-    # Wirtschaftsjahr berechnen
     def wirtschaftsjahr(datum):
         if datum.month >= wj_beginn_monat:
             return datum.year
@@ -256,7 +245,6 @@ def run_wj_pipeline(base_dir, output_dir=None, jahresbereich=range(1993, 2025), 
 
     df_all["WJ"] = df_all["DATUM"].apply(wirtschaftsjahr)
 
-    # Nach WJ aufteilen & speichern
     saved = []
     for wj, gruppe in df_all.groupby("WJ"):
         output_file = os.path.join(output_dir, f"WJ_{wj}_{wj+1}.csv")
