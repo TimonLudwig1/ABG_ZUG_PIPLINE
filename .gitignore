@@ -1,0 +1,13 @@
+*.csv
+*.dbf
+*.DBF
+converted_csv_files/
+data_converted_csv_files/
+converted_output/
+filtered_output/
+wirtschaftsjahre/
+Wirtschaftsjahre/
+temp/
+__pycache__/
+*.pyc
+.venv/
